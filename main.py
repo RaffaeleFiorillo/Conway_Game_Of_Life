@@ -2,18 +2,19 @@ import Classes as Cl
 import pygame
 
 # -------------------------------------------- WORLD DEFINITION --------------------------------------------------------
-LIFE_PROBABILITY = 0.09  # probability of a cell to be initiated as alive
-COLUMNS = 200  # number of horizontal cells
-ROWS = 200  # number of vertical cells
-CELL_SIZE = 3  # side length of a cell (cells are squares)
+LIFE_PROBABILITY = 0.2  # probability of a cell to be initiated as alive
+COLUMNS = 90  # number of horizontal cells
+ROWS = 90  # number of vertical cells
+CELL_SIZE = 10  # side length of a cell (cells are squares)
 COLORFUL = False  # True: live cells can be different colors | False: live cells are white | dead cells are always black
+CONTINUITY = False  # True: cells interact with cells in different time references | False: " " " " same time reference
 
 # ------------------------------------------- WINDOW DEFINITION --------------------------------------------------------
-WINDOW_WIDTH = ROWS*CELL_SIZE  # width of the simulation window based on rows number and cell size
-WINDOW_HEIGHT = COLUMNS*CELL_SIZE  # length of the simulation window based on column number and cell size
+WINDOW_WIDTH = ROWS * CELL_SIZE  # width of the simulation window based on rows number and cell size
+WINDOW_HEIGHT = COLUMNS * CELL_SIZE  # length of the simulation window based on column number and cell size
 WINDOW_LABEL = "Conway's Game of Life"  # the lable that appears in the window border
 CLOCK = pygame.time.Clock()  # clock to control the simulation loop regarding the frame rate
-FRAME_RATE = 30  # how many times per second the screen is updated
+FRAME_RATE = 10  # how many times per second the screen is updated
 
 
 # --------------------------------------------    FUNCTIONS       ------------------------------------------------------
@@ -30,7 +31,8 @@ RUN = True  # state of the simulation. "True" means it's running
 pygame.display.set_caption(WINDOW_LABEL)  # set the window lable to be displayed
 
 """ Timeless Version of Conway's game of life"""
-WORLD = Cl.World_Grid_Timeless(COLUMNS, ROWS, CELL_SIZE, SCREEN, probability=LIFE_PROBABILITY, colorful=COLORFUL)
+WORLD = Cl.World_Grid(COLUMNS, ROWS, CELL_SIZE, SCREEN,
+                      probability=LIFE_PROBABILITY, colorful=COLORFUL, time_discontinuity=CONTINUITY)
 
 """ Classic Version of Conway's game of life"""
 # WORLD = Cl.World_Grid_Timeless(COLUMNS, ROWS, CELL_SIZE, SCREEN, probability=LIFE_PROBABILITY, colorful=COLORFUL)
