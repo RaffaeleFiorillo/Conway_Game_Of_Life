@@ -1,7 +1,6 @@
 import random
 import pygame
-
-COLORS = [(255, 0, 0), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 0, 255), (255, 255, 255)]  # cell colors
+import auxiliar as a
 
 
 # Class that manages the simulation. It is timeless because cells that are checked after base their changes in previous
@@ -83,13 +82,20 @@ class World_Grid:
         [[self.cell_grid[y][x].draw(self.screen) for x in range(self.columns)] for y in range(self.rows)]
 
 
+# same world but with an additional being. The being moves freely among cells and affects them
+class World_Grid_Complex(World_Grid):
+    def __init__(self, columns, rows, cell_size, screen, being_code):
+        super().__init__(columns, rows, cell_size, screen)
+        self.being = Being(being_code)
+
+
 # Class that represents the Cells in the simulation
 class Cell:
     def __init__(self, alive, x, y, size, colorful=False, time_discontinuity=False):
         self.life_state = 1 == alive
         self.future_life_state = self.life_state
         self.colors = self.get_colors(colorful)
-        self.color = random.choice(COLORS)
+        self.color = random.choice(a.COLORS)
         self.draw = self.draw_time_discontinuous if time_discontinuity else self.draw_time_continuous
         self.update_state = self.update_state_time_discontinuous if time_discontinuity\
             else self.update_state_time_continuous
@@ -106,7 +112,7 @@ class Cell:
         return self.color
 
     def dead_color(self):
-        self.color = random.choice(COLORS)
+        self.color = random.choice(a.COLORS)
         return 0, 0, 0
 
     @staticmethod
@@ -143,3 +149,27 @@ class Cell:
         self.life_state = self.future_life_state
         color = self.colors[self.life_state]()
         pygame.draw.rect(screen, color, (self.x, self.y, self.size, self.size))
+
+
+class Being:
+    def __init__(self, code):
+        self.color = None  # color of the being
+        self.x = None  # x coordinate of the being
+        self.y = None  # y coordinate of the being
+        self.speed_x = None  # speed at which the being moves inside the screen in the X axis
+        self.speed_y = None  # speed at which the being moves inside the screen in the Y axis
+        self.size = None  # size of the being
+        self.draw = None  # function responsible for drawing the being on the screen
+        self.movement_control = None   # function responsible for moving the being on the screen
+        self.initialize_being(code)
+
+    def initialize_being(self, code):
+        data = a.get_being(code)
+        self.color = data[0]
+        self.x = data[1]
+        self.y = data[2]
+        self.speed_x = data[3]
+        self.speed_y = data[4]
+        self.size = data[5]
+        self.draw = data[6][0]
+        self.movement_control = data[6][1]
