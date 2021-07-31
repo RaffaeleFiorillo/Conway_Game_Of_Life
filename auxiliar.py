@@ -6,12 +6,14 @@ LIFE_PROBABILITY = 0.09  # probability of a cell to be initiated as alive
 COLUMNS = 100  # number of horizontal cells
 ROWS = 100  # number of vertical cells
 CELL_SIZE = 7  # side length of a cell (cells are squares)
-BEING_SIZE = CELL_SIZE * 3
+BEING_SIZE = CELL_SIZE*3
+BEING_CODE = 3  # type of being that will appear in the simulation. Only affects "Complex" simulation
 COLORFUL = False  # True: live cells can be different colors | False: live cells are white | dead cells are always black
 CONTINUITY = True  # True: cells interact with cells in different time references | False: " " " " same time reference
 X_SPEED= 20  # speed of a being in the x axis
 Y_SPEED= 20  # speed of a being in the y axis
 SPEED_CHANGE_PROBABILITY = 0.7  # probability for a being to change his speed
+MAX_SPEED_MODULE = 100  # the simulation's being can reach speeds inside: [- MAX_SPEED_MODULE; MAX_SPEED_MODULE] range
 
 # ------------------------------------------- WINDOW DEFINITION --------------------------------------------------------
 WINDOW_WIDTH = ROWS * CELL_SIZE  # width of the simulation window based on rows number and cell size
@@ -38,7 +40,7 @@ def random_change(speed):
         if (random.random() > SPEED_CHANGE_PROBABILITY) else speed
 
 
-def random_movement(x, y, x_speed, y_speed, event=None):
+def random_movement(x, y, x_speed, y_speed, events=None):
     x_speed = random_change(x_speed)
     y_speed = random_change(y_speed)
     x += x_speed
@@ -46,26 +48,25 @@ def random_movement(x, y, x_speed, y_speed, event=None):
     return x, y, x_speed, y_speed
 
 
-def controlled_movement(x, y, x_speed, y_speed, events=None):
-    x_movements = {pygame.K_RIGHT: x_speed, pygame.K_LEFT: -x_speed}[events[0]]
-    y_movements = {pygame.K_UP: -y_speed, pygame.K_DOWN: x_speed}[events[1]]
-    return x+x_movements, y+y_movements, x_speed, y_speed
+def controlled_movement(x, y, x_speed, y_speed, event=None):
+    movements = {None: (0, 0), "r": (x_speed, 0), "l": (-x_speed, 0), "u": (0, -y_speed), "d": (0, x_speed)}[event]
+    return x+movements[0], y+movements[1], x_speed, y_speed
 
 
 def draw_filled_square(screen, x, y, size, color):
-    pygame.draw.rect(screen, color, (size, size, x, y))
+    pygame.draw.rect(screen, color, (x+size//2, y+size//2, size, size))
 
 
 def draw_unfilled_square(screen, x, y, size, color):
-    pygame.draw.circle(screen, color, (x+size//2, y+size//2), size//2, size*0.1)
+    pygame.draw.rect(screen, color, (x+size//2, y+size//2, size, size), int(size*0.1))
 
 
 def draw_filled_circle(screen, x, y, size, color):
-    pygame.draw.circle(screen, color, (x+size//2, y+size//2), size//2)
+    pygame.draw.circle(screen, color, (x+size/2, y+size//2), size//2)
 
 
 def draw_unfilled_circle(screen, x, y, size, color):
-    pygame.draw.rect(screen, color, (size, size, x, y))
+    pygame.draw.circle(screen, color, (x+size/2, y+size//2), size//2, int(size*0.1))
 
 
 def get_being(code):

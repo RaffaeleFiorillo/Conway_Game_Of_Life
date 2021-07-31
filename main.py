@@ -5,9 +5,24 @@ import pygame
 
 # --------------------------------------------    FUNCTIONS       ------------------------------------------------------
 def refresh():  # updates the simulation for each generation
-    WORLD.update_cell_grid()  # simulation rules are applied for each existing cell
-    WORLD.draw_cells()  # each cell is drawn into the window
+    WORLD.refresh()
+    WORLD.move_being(None)
     pygame.display.update()  # pygame updates the screen
+
+
+def keyboard_control(PRESSED):
+    PRESSED = pygame.key.get_pressed()
+    if PRESSED[pygame.K_SPACE]:  # closing the window pressing SPACE
+        return False
+    if PRESSED[pygame.K_UP]:
+        WORLD.move_being("u")
+    if PRESSED[pygame.K_DOWN]:
+        WORLD.move_being("d")
+    if PRESSED[pygame.K_LEFT]:
+        WORLD.move_being("l")
+    if PRESSED[pygame.K_RIGHT]:
+        WORLD.move_being("r")
+    return True
 
 
 # --------------------------------------------      SETUP         ------------------------------------------------------
@@ -16,24 +31,26 @@ SCREEN = pygame.display.set_mode((WINDOW_HEIGHT, WINDOW_WIDTH))  # create the wi
 RUN = True  # state of the simulation. "True" means it's running
 pygame.display.set_caption(WINDOW_LABEL)  # set the window lable to be displayed
 
-""" Timeless Version of Conway's game of life"""
-WORLD = Cl.World_Grid(COLUMNS, ROWS, CELL_SIZE, SCREEN,
-                      probability=LIFE_PROBABILITY, colorful=COLORFUL, time_discontinuity=CONTINUITY)
+""" Conway's game of life """
+# WORLD = Cl.World_Grid(COLUMNS, ROWS, CELL_SIZE, SCREEN,
+                      #probability=LIFE_PROBABILITY, colorful=COLORFUL, time_discontinuity=CONTINUITY)
 
-""" Classic Version of Conway's game of life"""
-# WORLD = Cl.World_Grid_Timeless(COLUMNS, ROWS, CELL_SIZE, SCREEN, probability=LIFE_PROBABILITY, colorful=COLORFUL)
+""" Conway's game of life but with additional beings """
+WORLD = Cl.World_Grid_Complex(COLUMNS, ROWS, CELL_SIZE, SCREEN, BEING_CODE,
+                              probability=LIFE_PROBABILITY, colorful=COLORFUL)
 
-refresh()  # first world update that the user sees
 
 # --------------------------------------------    GAME LOOP       ------------------------------------------------------
 while RUN:
     CLOCK.tick(FRAME_RATE)  # run simulation with predefined frame rate
     # CLOCK.tick()  # run simulation with CPU full capacity
+
+    movement_events = []  # will contain all the events relevant to the moving of a being, occurring in the simulation
     for event in pygame.event.get():  # iterates over simulation events (like pressing a button)
         EVENT = event.type  # current event in the iteration
         if EVENT == pygame.QUIT:  # closing the window pressing the red "X" in the window's border
-            RUN = False
-        if EVENT == pygame.KEYDOWN:  # closing the window pressing SPACE
-            if pygame.key.get_pressed()[pygame.K_SPACE]:
-                RUN = False
+            exit()
+
+    RUN = keyboard_control(pygame.key.get_pressed())  # takes action based on keyboard input. Returns LOOP's run state
+
     refresh()  # refresh the simulation to show alterations in the world's state

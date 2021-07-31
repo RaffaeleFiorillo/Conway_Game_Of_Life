@@ -81,12 +81,30 @@ class World_Grid:
         # self.print_grid()
         [[self.cell_grid[y][x].draw(self.screen) for x in range(self.columns)] for y in range(self.rows)]
 
+    def refresh(self):
+        self.update_cell_grid()  # simulation rules are applied for each existing cell
+        self.draw_cells()  # each cell is drawn into the window
+
 
 # same world but with an additional being. The being moves freely among cells and affects them
 class World_Grid_Complex(World_Grid):
-    def __init__(self, columns, rows, cell_size, screen, being_code):
+    def __init__(self, columns, rows, cell_size, screen, being_code,
+                 initial_population=False, probability=False, colorful=False, time_discontinuity=False):
         super().__init__(columns, rows, cell_size, screen)
         self.being = Being(being_code)
+
+    def update_cell_grid(self):
+        # code for alteration due the existence of the Being. May have to be done after updating the cells
+        [[self.cell_grid[x][y].update_state(self.get_surrounding(x, y))
+          for y in range(self.columns)]
+         for x in range(self.rows)]
+
+    def move_being(self, event):
+        self.being.move(event)
+
+    def draw_cells(self):
+        [[self.cell_grid[y][x].draw(self.screen) for x in range(self.columns)] for y in range(self.rows)]
+        self.being.draw(self.screen)
 
 
 # Class that represents the Cells in the simulation
@@ -159,8 +177,8 @@ class Being:
         self.speed_x = None  # speed at which the being moves inside the screen in the X axis
         self.speed_y = None  # speed at which the being moves inside the screen in the Y axis
         self.size = None  # size of the being
-        self.draw = None  # function responsible for drawing the being on the screen
-        self.movement_control = None   # function responsible for moving the being on the screen
+        self.draw_function = None  # function responsible for drawing the being on the screen
+        self.movement_control_function = None   # function responsible for moving the being on the screen
         self.initialize_being(code)
 
     def initialize_being(self, code):
@@ -171,5 +189,19 @@ class Being:
         self.speed_x = data[3]
         self.speed_y = data[4]
         self.size = data[5]
-        self.draw = data[6][0]
-        self.movement_control = data[6][1]
+        self.draw_function = data[6][0]
+        self.movement_control_function = data[6][1]
+
+    def draw(self, screen):
+        self.draw_function(screen, self.x, self.y, self.size, self.color)
+
+    def move(self, event):
+        result = self.movement_control_function(self.x, self.y, self.speed_x, self.speed_y, event)
+        if 0 < result[0] < a.WINDOW_WIDTH:
+            self.x = result[0]
+        if 0 < result[1] < a.WINDOW_HEIGHT:
+            self.y = result[1]
+        if -a.MAX_SPEED_MODULE < result[2] < a.MAX_SPEED_MODULE:
+            self.speed_x = result[2]
+        if -a.MAX_SPEED_MODULE < result[3] < a.MAX_SPEED_MODULE:
+            self.speed_y = result[3]
