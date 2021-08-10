@@ -7,44 +7,27 @@ import auxiliar as a
 # cells that have already been changed. In theory it's like if the later cells are checked, the later in the future this
 # cells are relative to their previous neighbours. Time is directly proportional to the "X" and "Y" coordinates.
 class World_Grid:
-    def __init__(self, columns, rows, cell_size, screen,
-                 initial_population=False, probability=False, colorful=False, time_discontinuity=False):
-        self.initial_population = initial_population  # used for creating live cells based on cardinal number
+    def __init__(self, columns, rows, screen, probability=False, colorful=False, time_discontinuity=False):
         self.life_probability = probability  # used for creating live cells based on probability
         self.columns, self.rows = columns, rows  # number of cells: columns-> horizontal; rows-> vertical
-        self.cell_grid = self.create_grid(cell_size, colorful, time_discontinuity)  # creates a grid of cells
+        self.cell_grid = self.create_grid(colorful, time_discontinuity)  # creates a grid of cells
         self.screen = screen  # surface where the simulation is displayed
 
     # creates a grid based on the cell creation method preferred by the user
-    def create_grid(self, cell_size, colorful, time_discontinuity):
-        if self.life_probability:  # using the probability is the priority upon initial population number
-            cell_creation_method = self.alive_or_dead_1
-        elif self.initial_population:  # uses the initial population number to get a probability for cells to be alive
-            cell_creation_method = self.alive_or_dead_2
-        else:  # 50/50 chance of a cell being alive
-            cell_creation_method = self.alive_or_dead_random
-        return [[self.create_cell(cell_creation_method, _1, _2,
-                                  cell_size, colorful, time_discontinuity)  # creates a 2D list of cells
+    def create_grid(self, colorful, time_discontinuity):
+        return [[self.create_cell(self.cell_creation_method, _1, _2, colorful, time_discontinuity)  # creates cells grid
                  for _1 in range(self.columns)
                  ] for _2 in range(self.rows)
                 ]
 
     @staticmethod
-    def create_cell(creation_method, y, x, cell_size, colorful, time_discontinuity):
-        return Cell(creation_method(), x, y, cell_size, colorful, time_discontinuity)
+    def create_cell(creation_method, y, x, colorful, time_discontinuity):
+        return Cell(creation_method(), x, y, colorful, time_discontinuity)
 
-    def alive_or_dead_1(self):  # returns a 1 or 0 based on a probability
+    def cell_creation_method(self):  # returns a 1 or 0 based on a probability
         life_state = 1 if random.random() <= self.life_probability else 0
+        print(life_state)
         return life_state
-
-    def alive_or_dead_2(self):  # returns a 1 or 0 based on a calculated
-        life_probability = self.initial_population / (self.columns * self.rows)
-        life_state = 1 if random.random() <= life_probability else 0
-        return life_state
-
-    @staticmethod
-    def alive_or_dead_random():  # returns a 1 or 0 with a 50/50 chance
-        return random.choice([1, 0])
 
     def get_surrounding(self, x, y):  # returns a list of 1&0, which are the neighbor cells state . 1-> alive; 0-> dead
         left = x - 1  # x coordinate of the left neighbors
@@ -88,9 +71,8 @@ class World_Grid:
 
 # same world but with an additional being. The being moves freely among cells and affects them
 class World_Grid_Complex(World_Grid):
-    def __init__(self, columns, rows, cell_size, screen, being_code,
-                 initial_population=False, probability=False, colorful=False, time_discontinuity=False):
-        super().__init__(columns, rows, cell_size, screen)
+    def __init__(self, columns, rows, screen, being_code, probability=False, colorful=False, time_discontinuity=False):
+        super().__init__(columns, rows, screen, probability, colorful, time_discontinuity)
         self.being = Being(being_code)
 
     def update_cell_grid(self):
@@ -101,6 +83,18 @@ class World_Grid_Complex(World_Grid):
 
     def move_being(self, event):
         self.being.move(event)
+        self.make_being_affect_world()
+
+    def make_being_affect_world(self):
+        being_center_x, being_center_y = self.being.get_center()
+        affected_cell_row = being_center_x // a.CELL_SIZE
+        affected_cell_column = being_center_y // a.CELL_SIZE
+        try:
+            for row_adjust, column_adjust in a.ADJUSTS:
+                row, column = affected_cell_row+row_adjust, affected_cell_column+column_adjust
+                self.cell_grid[row][column].touched(a.BEING_EFFECT_NATURE)
+        except IndexError:
+            print("Error!")
 
     def draw_cells(self):
         [[self.cell_grid[y][x].draw(self.screen) for x in range(self.columns)] for y in range(self.rows)]
@@ -109,7 +103,7 @@ class World_Grid_Complex(World_Grid):
 
 # Class that represents the Cells in the simulation
 class Cell:
-    def __init__(self, alive, x, y, size, colorful=False, time_discontinuity=False):
+    def __init__(self, alive, x, y, colorful=False, time_discontinuity=False):
         self.life_state = 1 == alive
         self.future_life_state = self.life_state
         self.colors = self.get_colors(colorful)
@@ -117,9 +111,8 @@ class Cell:
         self.draw = self.draw_time_discontinuous if time_discontinuity else self.draw_time_continuous
         self.update_state = self.update_state_time_discontinuous if time_discontinuity\
             else self.update_state_time_continuous
-        self.x = x * size
-        self.y = y * size
-        self.size = size
+        self.x = x * a.CELL_SIZE
+        self.y = y * a.CELL_SIZE
 
     def get_colors(self, colorful):
         variety_colors = {True: self.alive_color, False: self.dead_color}
@@ -128,6 +121,9 @@ class Cell:
 
     def alive_color(self):
         return self.color
+
+    def touched(self, effect):
+        self.life_state = effect
 
     def dead_color(self):
         self.color = random.choice(a.COLORS)
@@ -161,12 +157,12 @@ class Cell:
 
     def draw_time_discontinuous(self, screen):
         color = self.colors[self.life_state]()
-        pygame.draw.rect(screen, color, (self.x, self.y, self.size, self.size))
+        pygame.draw.rect(screen, color, (self.x, self.y, a.CELL_SIZE, a.CELL_SIZE))
 
     def draw_time_continuous(self, screen):
         self.life_state = self.future_life_state
         color = self.colors[self.life_state]()
-        pygame.draw.rect(screen, color, (self.x, self.y, self.size, self.size))
+        pygame.draw.rect(screen, color, (self.x, self.y, a.CELL_SIZE, a.CELL_SIZE))
 
 
 class Being:
@@ -179,6 +175,7 @@ class Being:
         self.size = None  # size of the being
         self.draw_function = None  # function responsible for drawing the being on the screen
         self.movement_control_function = None   # function responsible for moving the being on the screen
+        self.get_central_coordinates_function = None
         self.initialize_being(code)
 
     def initialize_being(self, code):
@@ -191,9 +188,13 @@ class Being:
         self.size = data[5]
         self.draw_function = data[6][0]
         self.movement_control_function = data[6][1]
+        self.get_central_coordinates_function = data[7]
 
     def draw(self, screen):
         self.draw_function(screen, self.x, self.y, self.size, self.color)
+
+    def get_center(self):
+        return self.get_central_coordinates_function(self.x, self.y)
 
     def move(self, event):
         result = self.movement_control_function(self.x, self.y, self.speed_x, self.speed_y, event)

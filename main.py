@@ -32,12 +32,11 @@ RUN = True  # state of the simulation. "True" means it's running
 pygame.display.set_caption(WINDOW_LABEL)  # set the window lable to be displayed
 
 """ Conway's game of life """
-# WORLD = Cl.World_Grid(COLUMNS, ROWS, CELL_SIZE, SCREEN,
-                      #probability=LIFE_PROBABILITY, colorful=COLORFUL, time_discontinuity=CONTINUITY)
+# WORLD = Cl.World_Grid(COLUMNS, ROWS, SCREEN, LIFE_PROBABILITY, colorful=COLORFUL, time_discontinuity=CONTINUITY)
 
 """ Conway's game of life but with additional beings """
-WORLD = Cl.World_Grid_Complex(COLUMNS, ROWS, CELL_SIZE, SCREEN, BEING_CODE,
-                              probability=LIFE_PROBABILITY, colorful=COLORFUL)
+WORLD = Cl.World_Grid_Complex(COLUMNS, ROWS, SCREEN, BEING_CODE, LIFE_PROBABILITY,
+                              colorful=COLORFUL, time_discontinuity=CONTINUITY)
 
 
 # --------------------------------------------    GAME LOOP       ------------------------------------------------------
