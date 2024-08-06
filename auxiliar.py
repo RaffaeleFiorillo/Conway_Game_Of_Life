@@ -1,5 +1,6 @@
 import random
 import pygame
+import configurations as c
 
 
 def adjust_list_creator(extent):
@@ -10,7 +11,6 @@ def adjust_list_creator(extent):
     return first_range + second_range + third_range + fourth_range
 
 
-COLORS = [(255, 0, 0), (255, 255, 0), (255, 0, 255), (0, 255, 255), (0, 0, 255), (255, 255, 255)]  # cell colors
 ADJUSTS_LIST = [adjust_list_creator(2),
                 adjust_list_creator(3),
                 adjust_list_creator(4),
@@ -18,41 +18,26 @@ ADJUSTS_LIST = [adjust_list_creator(2),
                 adjust_list_creator(6)
                 ]
 # -------------------------------------------- WORLD DEFINITION --------------------------------------------------------
-LIFE_PROBABILITY = 0.02  # probability of a cell to be initiated as alive
-COLUMNS = 100  # number of horizontal cells
-ROWS = 100  # number of vertical cells
-CELL_SIZE = 7  # side length of a cell (cells are squares)
-BEING_SIZE = CELL_SIZE*3
-BEING_CODE = 4  # type of being that will appear in the simulation. Only affects "Complex" simulation
-COLORFUL = False  # True: live cells can be different colors | False: live cells are white | dead cells are always black
-CONTINUITY = False  # True: cells interact with cells in different time references | False: " " " " same time reference
-X_SPEED= 20  # speed of a being in the x axis
-Y_SPEED= 20  # speed of a being in the y axis
-SPEED_CHANGE_PROBABILITY = 0.8  # probability for a being to change his speed
-MAX_SPEED_MODULE = 100  # the simulation's being can reach speeds inside: [- MAX_SPEED_MODULE; MAX_SPEED_MODULE] range
-BEING_EFFECT_NATURE = True  # effect of the being when touching cells. True: revives; False: kills
 ADJUSTS = ADJUSTS_LIST[3]
 
 # ------------------------------------------- WINDOW DEFINITION --------------------------------------------------------
-WINDOW_WIDTH = ROWS * CELL_SIZE  # width of the simulation window based on rows number and cell size
-WINDOW_HEIGHT = COLUMNS * CELL_SIZE  # length of the simulation window based on column number and cell size
-WINDOW_LABEL = "Conway's Game of Life"  # the lable that appears in the window border
+WINDOW_WIDTH = c.ROWS * c.CELL_SIZE  # width of the simulation window based on rows number and cell size
+WINDOW_HEIGHT = c.COLUMNS * c.CELL_SIZE  # length of the simulation window based on column number and cell size
 CLOCK = pygame.time.Clock()  # clock to control the simulation loop regarding the frame rate
-FRAME_RATE = 10  # how many times per second the screen is updated
 
 
 # --------------------------------------------- BEING CREATION ---------------------------------------------------------
 def center_screen_y():
-    return (WINDOW_HEIGHT - BEING_SIZE)//2
+    return (WINDOW_HEIGHT - c.BEING_SIZE)//2
 
 
 def center_screen_x():
-    return (WINDOW_WIDTH - BEING_SIZE)//2
+    return (WINDOW_WIDTH - c.BEING_SIZE)//2
 
 
 def random_change(speed):
     return (speed+random.randint(5, 10) * random.choice([-1, 1])) * random.choice([-1, 1])\
-        if (random.random() > SPEED_CHANGE_PROBABILITY) else speed
+        if (random.random() > c.SPEED_CHANGE_PROBABILITY) else speed
 
 
 def random_movement(x, y, x_speed, y_speed, events=None):
@@ -85,7 +70,7 @@ def draw_unfilled_circle(screen, x, y, size, color):
 
 
 def get_square_center(x, y):
-    return x+BEING_SIZE//2, y+BEING_SIZE//2
+    return x+c.BEING_SIZE//2, y+c.BEING_SIZE//2
 
 
 def get_circle_center(x, y):
@@ -106,11 +91,11 @@ def get_being(code):
 
     center_function = get_circle_center if code % 2 else get_square_center  # get corresponding function to get center
 
-    being = [random.choice(COLORS),
+    being = [random.choice(c.COLORS),
              center_screen_x(),
              center_screen_y(),
-             X_SPEED, Y_SPEED,
-             BEING_SIZE,
+             c.X_SPEED, c.Y_SPEED,
+             c.BEING_SIZE,
              being_behaviours[code],
              center_function]
 

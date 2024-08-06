@@ -1,6 +1,7 @@
 import random
 import pygame
 import auxiliar as a
+import configurations as c
 
 
 # Class that manages the simulation. It is timeless because cells that are checked after base their changes in previous
@@ -26,7 +27,7 @@ class World_Grid:
 
     def cell_creation_method(self):  # returns a 1 or 0 based on a probability
         life_state = 1 if random.random() <= self.life_probability else 0
-        print(life_state)
+        # print(life_state)
         return life_state
 
     def get_surrounding(self, x, y):  # returns a list of 1&0, which are the neighbor cells state . 1-> alive; 0-> dead
@@ -87,14 +88,15 @@ class World_Grid_Complex(World_Grid):
 
     def make_being_affect_world(self):
         being_center_x, being_center_y = self.being.get_center()
-        affected_cell_row = being_center_x // a.CELL_SIZE
-        affected_cell_column = being_center_y // a.CELL_SIZE
+        affected_cell_row = being_center_x // c.CELL_SIZE
+        affected_cell_column = being_center_y // c.CELL_SIZE
         try:
             for row_adjust, column_adjust in a.ADJUSTS:
                 row, column = affected_cell_row+row_adjust, affected_cell_column+column_adjust
-                self.cell_grid[row][column].touched(a.BEING_EFFECT_NATURE)
+                self.cell_grid[row][column].touched(c.BEING_EFFECT_NATURE)
         except IndexError:
-            print("Error!")
+            pass
+            # print("Error!")
 
     def draw_cells(self):
         [[self.cell_grid[y][x].draw(self.screen) for x in range(self.columns)] for y in range(self.rows)]
@@ -107,12 +109,12 @@ class Cell:
         self.life_state = 1 == alive
         self.future_life_state = self.life_state
         self.colors = self.get_colors(colorful)
-        self.color = random.choice(a.COLORS)
+        self.color = random.choice(c.COLORS)
         self.draw = self.draw_time_discontinuous if time_discontinuity else self.draw_time_continuous
         self.update_state = self.update_state_time_discontinuous if time_discontinuity\
             else self.update_state_time_continuous
-        self.x = x * a.CELL_SIZE
-        self.y = y * a.CELL_SIZE
+        self.x = x * c.CELL_SIZE
+        self.y = y * c.CELL_SIZE
 
     def get_colors(self, colorful):
         variety_colors = {True: self.alive_color, False: self.dead_color}
@@ -126,7 +128,7 @@ class Cell:
         self.life_state = effect
 
     def dead_color(self):
-        self.color = random.choice(a.COLORS)
+        self.color = random.choice(c.COLORS)
         return 0, 0, 0
 
     @staticmethod
@@ -157,12 +159,12 @@ class Cell:
 
     def draw_time_discontinuous(self, screen):
         color = self.colors[self.life_state]()
-        pygame.draw.rect(screen, color, (self.x, self.y, a.CELL_SIZE, a.CELL_SIZE))
+        pygame.draw.rect(screen, color, (self.x, self.y, c.CELL_SIZE, c.CELL_SIZE))
 
     def draw_time_continuous(self, screen):
         self.life_state = self.future_life_state
         color = self.colors[self.life_state]()
-        pygame.draw.rect(screen, color, (self.x, self.y, a.CELL_SIZE, a.CELL_SIZE))
+        pygame.draw.rect(screen, color, (self.x, self.y, c.CELL_SIZE, c.CELL_SIZE))
 
 
 class Being:
@@ -202,7 +204,7 @@ class Being:
             self.x = result[0]
         if 0 < result[1] < a.WINDOW_HEIGHT:
             self.y = result[1]
-        if -a.MAX_SPEED_MODULE < result[2] < a.MAX_SPEED_MODULE:
+        if -c.MAX_SPEED_MODULE < result[2] < c.MAX_SPEED_MODULE:
             self.speed_x = result[2]
-        if -a.MAX_SPEED_MODULE < result[3] < a.MAX_SPEED_MODULE:
+        if -c.MAX_SPEED_MODULE < result[3] < c.MAX_SPEED_MODULE:
             self.speed_y = result[3]
